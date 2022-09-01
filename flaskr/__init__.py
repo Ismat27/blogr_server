@@ -1,7 +1,9 @@
 from flask import Flask, jsonify, request, abort
 from flask_cors import CORS
 from .models import setup_db
-from .post import all_posts, new_post, remove_post, single_post, update_post
+from .post import \
+    all_posts, new_post, remove_post, single_post, \
+    update_post, user_posts, search_posts
 from .auth import \
     is_superuser, sign_up_user,login_in_user, get_token, allow_update_post
 from .user import \
@@ -61,61 +63,57 @@ def create_app(test_config=None):
         if request.method == 'PUT':
             return update_user(user_id)
 
-    @app.route('/change_superstatus/<int:user_id>')
+    @app.route('/change_superstatus/<int:user_id>', methods=['PATCH'])
     @get_token
     def change_superstatus(current_user, user_id):
         if not is_superuser(current_user):
             abort(403)
         return change_superuser_status(user_id)
     
-    @app.route('/change_adminstatus/<int:user_id>')
+    @app.route('/change_adminstatus/<int:user_id>', methods=['PATCH'])
     @get_token
     def change_adminstatus(current_user, user_id):
         if not is_superuser(current_user):
             abort(403)
         return change_admin_status(user_id)
 
-    @app.route('/posts')
-    def get_all_posts():
-        return all_posts()
-    
-    @app.route('/posts/<int:post_id>', methods=['GET'])
-    def get_single_post(post_id):
-        return single_post(post_id)
-    
     @app.route('/posts', methods=['POST'])
     @get_token
     def make_new_post(current_user):
         return new_post(current_user)
     
-    @app.route('/posts/<int:post_id>', methods=['PUT'])
-    @get_token
-    def put_post(current_user, post_id):
-        if allow_update_post(current_user=current_user, post_id=post_id):
-            return update_post(post_id)
-        else:
-            return jsonify({
-                'message': 'not allowed',
-                'success': False
-            }), 403
+    @app.route('/posts')
+    def get_all_posts():
+        return all_posts()
     
-    @app.route('/posts/<int:post_id>', methods=['DELETE'])
+    @app.route('/posts/<int:post_id>', methods=['GET'])
+    def one_post(post_id):
+        return single_post(post_id)
+    
+    @app.route('/users/<int:user_id>/posts', methods=['GET'])
+    def posts_by_user(user_id):
+        return user_posts(user_id)
+
+    @app.route('/posts/search', methods=['POST'])
+    def posts_by_search():
+        return search_posts()
+    
+    @app.route('/posts/<int:post_id>', methods=['PUT', 'DELETE'])
     @get_token
-    def delete_post(current_user, post_id):
-        if allow_update_post(current_user=current_user, post_id=post_id):
+    def delete_update_post(current_user, post_id):
+        if not allow_update_post(current_user=current_user, post_id=post_id):
+            abort(403)
+        if request.method == 'PUT':
+            return update_post(post_id)
+        if request.method == 'DELETE':
             return remove_post(post_id)
-        else:
-            return jsonify({
-                'message': 'not allowed',
-                'success': False
-            }), 403
     
     @app.errorhandler(400)
     def bad_request(error):
         return jsonify({
             'success': False,
             'message': 'Bad Request',
-            'status': 400
+            'status_code': 400
         }), 400
 
     @app.errorhandler(401)
@@ -123,7 +121,7 @@ def create_app(test_config=None):
         return jsonify({
             'success': False,
             'message': 'sender not authenticated',
-            'status': 401
+            'status_code': 401
         }), 401
     
     @app.errorhandler(403)

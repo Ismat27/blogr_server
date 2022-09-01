@@ -1,39 +1,20 @@
-import json
 import uuid
 from datetime import datetime
 from flask import jsonify, request, abort
 from .models import db, Post, User
 
-def all_posts():
-    posts = Post.query.all()
-    posts = [post.format() for post in posts]
-    return jsonify({
-        'posts': posts,
-        'success': True,
-        'total_posts': len(posts)
-    }), 200
-
 def new_post(current_user):
     data = request.get_json()
     if not data:
-        return jsonify({
-            'message': 'post data not included',
-            'success': False
-        }), 400
+        abort(400)
     try:
         title = data['title']
         content = data['content']
     except KeyError:
-        return jsonify({
-            'message': 'bad request',
-            'success': False,
-        }), 400
-    public_id = str(uuid.uuid4())
+        abort(400)
     if not title or not content:
-        return jsonify({
-            'message': 'bad request',
-            'success': False,
-        }), 400
+        abort(400)
+    public_id = str(uuid.uuid4())
     try:
         post = Post(
             public_id=public_id,
@@ -53,66 +34,92 @@ def new_post(current_user):
             'success': False,
         }), 422
 
-def remove_post(post_id):
-    post = Post.query.get(post_id)
-    if not post:
-        return jsonify({
-            'message': 'resource not found',
-            'success': True
-        }), 404
-    
+def all_posts():
+    posts = Post.query.all()
+    posts = [post.format() for post in posts]
     return jsonify({
-        'message': 'Delete possible',
-        'success': True
-    })
-    
-    # try:
-    #     post.delete()
-    # except Exception as error:
-    #     db.session.rollback()
-    # finally:
-    #     db.session.close()
+        'posts': posts,
+        'success': True,
+        'total_posts': len(posts)
+    }), 200
+
 def single_post(post_id):
     post = Post.query.get(post_id)
     if not post:
-        return jsonify({
-            'message': 'resource not found',
-            'success': False
-        }), 404
+       abort(404)
     return jsonify(post.format())
+
+def user_posts(user_id):
+    user = User.query.get(user_id)
+    if not user: abort(404)
+    try:
+        posts = Post.query.filter_by(author_id=user_id)
+        posts = [
+            post.format() for
+            post in posts
+        ]
+        return jsonify({
+            'posts': posts,
+            'total_posts': len(posts),
+            'success': True
+        })
+    except Exception as error:
+        abort(422)
+
+def search_posts():
+    posts = []
+    if 'search_term' in request.get_json():
+        search_term = request.get_json()['search_term'].strip()
+        if not search_term: abort(422)
+        posts = Post.query.filter(Post.title.ilike(f'%{search_term}%'))
+        posts = [
+            post.format() for
+            post in posts
+        ]
+    return jsonify({
+        'posts': posts,
+        'total_posts': len(posts),
+        'success': True
+    })
 
 def update_post(post_id):
     post = Post.query.get(post_id)
     data = request.get_json()
     if not post or not data:
-        return jsonify({
-            'message': 'resource not found',
-            'success': True
-        }), 404
+        abort(404)
     try:
         title = data['title']
         content = data['content']
     except KeyError:
-        return jsonify({
-            'success': False,
-            'message': 'missing data'
-        }), 400
+        abort(400)
     try:
         post.title = title
         post.content = content
         post.updated_at = datetime.now()
         post.update()
         return jsonify({
-        'post': post,
+        'post': post.format(),
         'success': True
         }), 200
     except Exception as error:
         print(error)
         db.session.rollback()
-        return jsonify({
-            'message': 'update failed',
-            'success': False
-        }), 422
+        abort(422)
     finally:
         db.session.close()
-    
+
+def remove_post(post_id):
+    post = Post.query.get(post_id)
+    if not post:
+        abort(404)
+    try:
+        post.delete()
+        return jsonify({
+            'deleted_id': post_id,
+            'success': True
+        }), 200
+    except Exception as error:
+        db.session.rollback()
+        abort(422)
+    finally:
+        db.session.close()

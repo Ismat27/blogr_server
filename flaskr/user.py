@@ -1,4 +1,4 @@
-from flask import jsonify, request
+from flask import jsonify, request, abort
 from .models import Post, User, db
 
 def all_users():
@@ -22,10 +22,7 @@ def single_user(user_id):
 def delete_user(user_id):
     user = User.query.get(user_id)
     if not user:
-        return jsonify({
-            'message': 'user does not exist',
-            'success': False
-        })
+        abort(404)
     try:
         user.delete()
         return jsonify({

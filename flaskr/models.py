@@ -63,9 +63,12 @@ class Post(db.Model):
             last_updated = self.updated_at
         else:
             last_updated = self.created_at
+        if self.author:
+            author = self.author.fullname()
+        else: author=''
         return {
             'id': self.public_id,
-            'author': self.author.fullname(),
+            'author': author,
             'title': self.title,
             'content': self.content,
             'date_created': self.created_at,

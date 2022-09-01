@@ -1,7 +1,7 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
 from datetime import datetime, timedelta
-from flask import request, jsonify, make_response
+from flask import request, jsonify, abort
 from .models import User
 import jwt
 from functools import wraps
@@ -108,10 +108,7 @@ def get_token(f):
         if 'Authorization' in request.headers:
             token = request.headers['Authorization'].split(' ')[1]
         if not token:
-            return jsonify({
-                'message' : 'Token is missing !!',
-                'success': False
-            }), 401
+            abort(401)
         try:
             data = jwt.decode(token, 'thisisthesecretkey', algorithms=['HS256'])
             current_user = User.query\
@@ -119,9 +116,7 @@ def get_token(f):
                 .first()
         except Exception as error:
             print(error)
-            return jsonify({
-                'message': 'Token is invalid'
-            }), 401
+            abort(401)
         return f(current_user, *args, **kwargs)
     return decorated
 
@@ -150,7 +145,7 @@ def authorize(current_user, post_id):
 
 def allow_update_post(current_user, post_id):
     post = Post.query.get(post_id)
-    if not post: return False
+    if not post: abort(404)
     is_superuser = current_user.is_superuser
     if is_superuser: return True
     is_admin = current_user.is_admin
