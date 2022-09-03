@@ -1,14 +1,14 @@
-import os
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, String, DateTime, Integer, Text, Boolean, ForeignKey
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship, declarative_base
 from flask_migrate import Migrate
+from decouple import config
 
 
-database_user = os.environ['DB_USER']
-database_user_password = os.environ['DB_PASSWORD']
-database_name = 'blogr'
+database_user = config('DB_USER')
+database_user_password = config('DB_PASSWORD')
+database_name = config('DB_NAME')
 database_path = "postgresql://{}:{}@{}/{}".format(
     database_user, database_user_password, "localhost:5432", database_name
 )
