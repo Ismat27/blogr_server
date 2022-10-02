@@ -25,4 +25,4 @@ htmlcov/
 *,cover
 
 # miscellaneous
-test_deco.py
+miscellaneous
