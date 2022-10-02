@@ -9,8 +9,10 @@ from decouple import config
 database_user = config('DB_USER')
 database_user_password = config('DB_PASSWORD')
 database_name = config('DB_NAME')
-database_path = "postgresql://{}:{}@{}/{}".format(
-    database_user, database_user_password, "localhost:5432", database_name
+database_host = config('DB_HOST')
+database_port = config('DB_PORT')
+database_path = "postgresql://{}:{}@{}:{}/{}".format(
+    database_user, database_user_password, database_host, database_port, database_name
 )
 db = SQLAlchemy()
 migrate = Migrate()
