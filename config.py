@@ -2,7 +2,6 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-basedir = os.path.abspath(os.path.dirname(__file__))
 
 def database(mode=''):
     database_user = os.environ.get('DB_USER'+mode)
@@ -29,9 +28,9 @@ class DevelopmentConfig(Config):
     
 class TestingConfig(Config):
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = database('TEST')
+    SQLALCHEMY_DATABASE_URI = database('_TEST')
 
 class ProductionConfig(Config):
     DEBUG = False
     FLASK_ENV = 'production'
-    SQLALCHEMY_DATABASE_URI = database('PROD')
+    SQLALCHEMY_DATABASE_URI = database('_PROD')
