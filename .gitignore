@@ -24,5 +24,4 @@ htmlcov/
 .coverage.*
 *,cover
 
-# miscellaneous
-test_deco.py
+miscellaneous
