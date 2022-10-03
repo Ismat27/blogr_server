@@ -5,19 +5,10 @@ from sqlalchemy.orm import relationship, declarative_base
 from flask_migrate import Migrate
 from decouple import config
 
-
-database_user = config('DB_USER')
-database_user_password = config('DB_PASSWORD')
-database_name = config('DB_NAME')
-database_path = "postgresql://{}:{}@{}/{}".format(
-    database_user, database_user_password, "localhost:5432", database_name
-)
 db = SQLAlchemy()
 migrate = Migrate()
 
-def setup_db(app, database_path=database_path):
-    app.config["SQLALCHEMY_DATABASE_URI"] = database_path
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+def setup_db(app):
     db.app = app
     db.init_app(app)
     migrate.init_app(app, db)

@@ -9,10 +9,11 @@ from .auth import \
 from .user import \
     all_users, single_user, delete_user, update_user,\
     change_admin_status, change_superuser_status
+from config import DevelopmentConfig
 
-
-def create_app(test_config=None):
+def create_app(test_config=DevelopmentConfig):
     app = Flask(__name__)
+    app.config.from_object(test_config)
     setup_db(app)
     CORS(app)
 
@@ -39,12 +40,17 @@ def create_app(test_config=None):
     def login():
         return login_in_user()
 
-    @app.route('/users')
-    @get_token
-    def get_all_users(current_user):
-        if is_superuser(current_user):
-            return all_users()
-        else: abort(403)
+    # @app.route('/users')
+    # @get_token
+    # def get_all_users(current_user):
+    #     if is_superuser(current_user):
+    #         return all_users()
+    #     else: abort(403)
+    
+    @app.route('/users/')
+    def get_all_users():
+        return all_users()
+        
     
     @app.route('/users/<int:user_id>', methods=['GET'])
     @get_token
