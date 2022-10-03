@@ -32,11 +32,11 @@ def create_app(test_config=DevelopmentConfig):
     def hello():
         return jsonify('You are welcome to Blogr')
 
-    @app.route('/signup', methods=['POST'])
+    @app.route('/signup/', methods=['POST'])
     def signup():
         return sign_up_user()
 
-    @app.route('/login', methods=['POST'])
+    @app.route('/login/', methods=['POST'])
     def login():
         return login_in_user()
 
@@ -52,14 +52,14 @@ def create_app(test_config=DevelopmentConfig):
         return all_users()
         
     
-    @app.route('/users/<int:user_id>', methods=['GET'])
+    @app.route('/users/<int:user_id>/', methods=['GET'])
     @get_token
     def get_single_user(current_user, user_id):
         if is_superuser(current_user):
             return single_user(user_id)
         else: abort(403)
 
-    @app.route('/users/<int:user_id>', methods=['DELETE', 'PUT'])
+    @app.route('/users/<int:user_id>/', methods=['DELETE', 'PUT'])
     @get_token
     def delete_update_user(current_user, user_id):
         if not is_superuser(current_user):
@@ -69,42 +69,42 @@ def create_app(test_config=DevelopmentConfig):
         if request.method == 'PUT':
             return update_user(user_id)
 
-    @app.route('/change_superstatus/<int:user_id>', methods=['PATCH'])
+    @app.route('/change_superstatus/<int:user_id>/', methods=['PATCH'])
     @get_token
     def change_superstatus(current_user, user_id):
         if not is_superuser(current_user):
             abort(403)
         return change_superuser_status(user_id)
     
-    @app.route('/change_adminstatus/<int:user_id>', methods=['PATCH'])
+    @app.route('/change_adminstatus/<int:user_id>/', methods=['PATCH'])
     @get_token
     def change_adminstatus(current_user, user_id):
         if not is_superuser(current_user):
             abort(403)
         return change_admin_status(user_id)
 
-    @app.route('/posts', methods=['POST'])
+    @app.route('/posts/', methods=['POST'])
     @get_token
     def make_new_post(current_user):
         return new_post(current_user)
     
-    @app.route('/posts')
+    @app.route('/posts/')
     def get_all_posts():
         return all_posts()
     
-    @app.route('/posts/<int:post_id>', methods=['GET'])
+    @app.route('/posts/<int:post_id>/', methods=['GET'])
     def one_post(post_id):
         return single_post(post_id)
     
-    @app.route('/users/<int:user_id>/posts', methods=['GET'])
+    @app.route('/users/<int:user_id>/posts/', methods=['GET'])
     def posts_by_user(user_id):
         return user_posts(user_id)
 
-    @app.route('/posts/search', methods=['POST'])
+    @app.route('/posts/search/', methods=['POST'])
     def posts_by_search():
         return search_posts()
     
-    @app.route('/posts/<int:post_id>', methods=['PUT', 'DELETE'])
+    @app.route('/posts/<int:post_id>/', methods=['PUT', 'DELETE'])
     @get_token
     def delete_update_post(current_user, post_id):
         if not allow_update_post(current_user=current_user, post_id=post_id):
